@@ -53,3 +53,5 @@ However, at least concerning Node.js's process.nextTick function (which queues *
 
 Basically, use **microtasks** when you need to do stuff asynchronously in a synchronous way (i.e. when you would say *perform this (micro-)task in the most immediate future*). Otherwise, stick to **macrotasks**.
 
+### Zonejs and NgZone
+
