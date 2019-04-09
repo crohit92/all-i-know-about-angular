@@ -21,6 +21,12 @@ var dashboardZone = appZone.fork({
         console.log({ currentZone: currentZone, targetZone: targetZone });
         console.groupEnd();
         return parentZoneDelegate.fork(targetZone, zoneSpec);
+    },
+    onInvoke: (parentZoneDelegate, currentZone, targetZone, delegate,
+        applyThis, applyArgs, source) => {
+        console.log(`${targetZone.name} invoked`);
+        return parentZoneDelegate.invoke(targetZone, delegate,
+            applyThis, applyArgs, source);
     }
 });
 var homeZone = dashboardZone.fork({
@@ -29,3 +35,10 @@ var homeZone = dashboardZone.fork({
 var productsZone = dashboardZone.fork({
     name: 'Dashboard products Zone'
 });
+
+homeZone.run(() => {
+    console.log(`${Zone.current.name} started`);
+    setTimeout(() => {
+        console.log('Hello');
+    })
+})
