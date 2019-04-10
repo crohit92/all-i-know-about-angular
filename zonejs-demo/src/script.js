@@ -8,6 +8,12 @@ var appZone = rootZone.fork({
         console.log({ currentZone: currentZone, targetZone: targetZone });
         console.groupEnd();
         return parentZoneDelegate.fork(targetZone, zoneSpec);
+    },
+    onInvoke: (parentZoneDelegate, currentZone, targetZone, delegate,
+        applyThis, applyArgs, source) => {
+        console.log(`${currentZone.name} invoked`);
+        return parentZoneDelegate.invoke(targetZone, delegate,
+            applyThis, applyArgs, source);
     }
 });
 var errorZone = appZone.fork({
@@ -24,9 +30,18 @@ var dashboardZone = appZone.fork({
     },
     onInvoke: (parentZoneDelegate, currentZone, targetZone, delegate,
         applyThis, applyArgs, source) => {
-        console.log(`${targetZone.name} invoked`);
+        console.log(`${currentZone.name} invoked`);
         return parentZoneDelegate.invoke(targetZone, delegate,
             applyThis, applyArgs, source);
+    },
+    onIntercept: (parentZoneDelegate, currentZone, targetZone, delegate,
+        source) => {
+        const _delegate = function () {
+            console.log('Before callback');
+            delegate();
+            console.log('after callback');
+        }
+        return parentZoneDelegate.intercept(targetZone, _delegate, source);
     }
 });
 var homeZone = dashboardZone.fork({
@@ -36,9 +51,10 @@ var productsZone = dashboardZone.fork({
     name: 'Dashboard products Zone'
 });
 
-homeZone.run(() => {
+const cb = homeZone.wrap(() => {
     console.log(`${Zone.current.name} started`);
     setTimeout(() => {
         console.log('Hello');
     })
-})
+});
+cb();

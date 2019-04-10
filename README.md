@@ -143,6 +143,53 @@ class ZoneDelegate implements AmbientZoneDelegate {
 }
 ```
 
+Important methods of Zone
+
+1. `fork`: Discussed above
+
+2. `wrap`: Used to wrap a callback inside a zone. It runs the callback inside a guarded zone
+
+
+```typescript
+public wrap<T extends Function>(callback: T, source: string): T {
+  if (typeof callback !== 'function') {
+    throw new Error('Expecting function got: ' + callback);
+  }
+  const _callback = this._zoneDelegate.intercept(this, callback, source);
+  const zone: Zone = this;
+  return function() {
+    return zone.runGuarded(_callback, (this as any), <any>arguments, source);
+  } as any as T;
+}
+```
+
+`wrap` also triggers `onIntercept` hook to allow intercept the callback function
+
+```typescript
+onIntercept: (parentZoneDelegate, currentZone, targetZone, callback, source) => {
+  const _callback = function () {
+    console.log('Before callback');
+    callback();
+    console.log('after callback');
+  }
+  return parentZoneDelegate.intercept(targetZone, _callback, source);
+}
+```
+
+3. `run`: Used to run a callback inside a zone
+
+```
+const homeZone = Zone.current.fork({name:"Home Zone"});
+homeZone.run(() => {
+    console.log(`${Zone.current.name} started`);
+    setTimeout(() => {
+        console.log('Hello');
+    })
+});
+```
+
+`run` and `runGuarded` both trigger `onInvoke` hook.
+
 Reference:
 
 [Doc](<https://docs.google.com/document/d/1F5Ug0jcrm031vhSMJEOgp1l-Is-Vf0UCNDY-LsQtAIY/edit#>)
